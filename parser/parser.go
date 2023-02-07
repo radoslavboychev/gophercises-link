@@ -1,39 +1,70 @@
 package parser
 
 import (
-	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
 	"strings"
 
+	"github.com/radoslavboychev/gophercises-link/models"
 	"golang.org/x/net/html"
 )
 
-func ParseHTML(filename string) func(*html.Node) {
-	file, err := ioutil.ReadFile(filename)
+func ParseHTML(filename string) ([]models.Link, error) {
+
+	// read the html file
+	file, err := ioutil.ReadFile("../.././src/ex1.html")
 	if err != nil {
-		return nil
+		log.Println(err)
+		return nil, err
 	}
 
-	doc, err := html.Parse(strings.NewReader(string(file)))
-	if err != nil {
-		return nil
-	}
+	// create new reader
+	r := strings.NewReader(string(file))
 
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "a" {
-			for _, a := range n.Attr {
-				if a.Key == "href" {
-					fmt.Println(a.Val)
+	// create a new tokenizer
+	tokenizer := html.NewTokenizer(r)
 
-					break
-				}
+	// create a struct to hold all links
+	res := []models.Link{}
+
+	// loop through page tokens
+	for {
+		// scans the next html token and returns its type
+		tokenType := tokenizer.Next()
+
+		// if the token is an error token, return and break the loop
+		if tokenType == html.ErrorToken {
+			err := tokenizer.Err()
+			if err == io.EOF {
+				return nil, err
 			}
-			for c := n.FirstChild; c != nil; c = c.NextSibling {
-				f(c)
+			break
+		}
+
+		// if the token type is a start tag token
+		// return the current token
+		if tokenType == html.StartTagToken {
+			token := tokenizer.Token()
+			// create a new link object to map the token to
+			l := models.Link{}
+			// if the tokan is an anchor element
+			if token.Data == "a" {
+				// check the next token type
+				tokenType = tokenizer.Next()
+				// if its an html text token
+				if tokenType == html.TextToken {
+					for _, a := range token.Attr {
+						l.Text = tokenizer.Token().Data
+						l.Href = a.Val
+						res = append(res, l)
+					}
+					// set the link text to the token data
+
+				}
+				break
 			}
 		}
 	}
-	f(doc)
-	return f
+	return res, nil
 }

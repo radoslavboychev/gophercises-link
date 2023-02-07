@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -58,11 +59,9 @@ func ParseHTML(filename string) ([]models.Link, error) {
 						l.Text = tokenizer.Token().Data
 						l.Href = a.Val
 						res = append(res, l)
+						fmt.Printf("%v, %v\n", l.Href, l.Text)
 					}
-					// set the link text to the token data
-
 				}
-				break
 			}
 		}
 	}

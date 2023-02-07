@@ -11,6 +11,9 @@ func main() {
 	if err != nil {
 		return
 	}
-	fmt.Printf("res: %v\n", res)
+
+	for _, v := range res {
+		fmt.Printf("v: %v\n", v)
+	}
 
 }

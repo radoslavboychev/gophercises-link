@@ -6,14 +6,13 @@ import (
 	"github.com/radoslavboychev/gophercises-link/parser"
 )
 
+var filename string = "../.././src/ex3.html"
+
 func main() {
-	res, err := parser.ParseHTML(".././src/ex1.html")
+	res, err := parser.ParseHTML(filename)
 	if err != nil {
 		return
 	}
 
-	for _, v := range res {
-		fmt.Printf("v: %v\n", v)
-	}
-
+	fmt.Printf("res: %v\n", res)
 }

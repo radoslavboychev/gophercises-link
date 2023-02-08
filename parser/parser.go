@@ -8,16 +8,17 @@ import (
 	"strings"
 
 	"github.com/radoslavboychev/gophercises-link/models"
+	"github.com/radoslavboychev/gophercises-link/parsingerrors"
 	"golang.org/x/net/html"
 )
 
 func ParseHTML(filename string) ([]models.Link, error) {
 
 	// read the html file
-	file, err := ioutil.ReadFile("../.././src/ex1.html")
+	file, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return []models.Link{}, parsingerrors.ErrOpeningFile
 	}
 
 	// create new reader
@@ -38,7 +39,11 @@ func ParseHTML(filename string) ([]models.Link, error) {
 		if tokenType == html.ErrorToken {
 			err := tokenizer.Err()
 			if err == io.EOF {
-				return nil, err
+				if len(res) != 0 {
+					return res, nil
+				} else {
+					return nil, parsingerrors.ErrEOF
+				}
 			}
 			break
 		}
@@ -56,14 +61,15 @@ func ParseHTML(filename string) ([]models.Link, error) {
 				// if its an html text token
 				if tokenType == html.TextToken {
 					for _, a := range token.Attr {
-						l.Text = tokenizer.Token().Data
-						l.Href = a.Val
+						l.Text = strings.TrimSpace(tokenizer.Token().Data)
+						l.Href = strings.TrimSpace(a.Val)
 						res = append(res, l)
-						fmt.Printf("%v, %v\n", l.Href, l.Text)
+						fmt.Printf("Href: %v \n Text: %v\n", l.Href, l.Text)
 					}
 				}
 			}
 		}
 	}
+
 	return res, nil
 }
